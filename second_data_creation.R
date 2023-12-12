@@ -1,6 +1,3 @@
-library(dplyr)
-library(mapsapi)
-
 # Set seed for reproducibility
 set.seed(123)
 
