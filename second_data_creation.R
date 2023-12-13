@@ -1,45 +1,52 @@
-# Set seed for reproducibility
-set.seed(123)
+# Creating a dataset with depots using letters from A to J
+depot_letters <- LETTERS[1:10]  # A to J
 
-# Function to generate random dates within a given range
-generate_random_date <- function(n) {
-  start_date <- as.Date("2020-01-01")
-  end_date <- as.Date("2023-12-31")
-  random_dates <- sample(seq(start_date, end_date, by = "1 day"), n, replace = TRUE)
-  return(random_dates)
-}
+# Creating a data frame with depot letters
+depot_data <- data.frame(Depot_Letter = rep(depot_letters, each = 100))
 
-# Function to generate fake data for 10,000 rows
-generate_initial_fake_data <- function() {
-  # Generate random dates
-  booking_dates <- generate_random_date(10000)
-  
-  # Generate depot and vehicle details
-  depot_ids <- rep(1:10, each = 10)
-  vehicle_ids <- rep(1:100, each = 10)
-  origin_depots <- rep(paste("Depot", 1:10), each = 10)
-  origin_coords <- rep(NA, 10000)
-  
-  # Generate store details
-  store_ids <- 1:1000
-  store_coords <- matrix(runif(2000, 35, 40), ncol = 2)  # Random store coordinates
-  
-  # Create the initial fake dataset
-  fake_data_set <- tibble(
-    BookingID = 1:10000,
-    Booking_date = booking_dates,
-    vehicule_ID = rep(vehicle_ids, each = 10),
-    Origin_Depot = origin_depots,
-    Origin_Cord = origin_coords,
-    Store_ID = rep(store_ids, each = 10),
-    Store_Cord = rep(store_coords, each = 10),
-    Planned_ETA = NA,
-    Transport_Distance = NA,
-    Trip_end_date = NA
+# Creating a vector of vehicle numbers for each depot
+vehicle_numbers <- rep(1:10, each = 10)
+
+# Adding columns for vehicle numbers and store IDs in the data frame
+depot_data$Vehicle <- paste0(depot_data$Depot_Letter, vehicle_numbers)
+
+# Creating unique store IDs with the format "DepotLetterVehicleNumberOwnLetter"
+store_letters <- rep(letters[1:10], each = 1)
+store_letters_group <- rep(store_letters, each = 1)
+
+# concatenate the characters from Vehicle and store_letters_group
+depot_data$Store_ID <- paste0(depot_data$Depot_Letter, depot_data$Vehicle, store_letters_group)
+
+
+# Renaming columns in the data frame
+colnames(depot_data) <- c("depot_id", "vehicle_id", "store_id")
+
+# Displaying the resulting dataset
+head(depot_data, 15)
+
+library(lubridate)
+library(dplyr)
+
+# Function to generate random data for a given number of days
+generate_random_data <- function(days) {
+  data <- data.frame(
+    date = rep(seq(Sys.time(), by = "-1 day", length.out = days), each = nrow(depot_data)),
+    depot_id = rep(depot_data$depot_id, each = days),
+    vehicle_id = rep(depot_data$vehicle_id, each = days),
+    store_id = rep(depot_data$store_id, each = days)
   )
-  
-  return(fake_data_set)
+  # Add additional columns with simulated data (you can customize this part)
+  data$quantity_sold <- rpois(nrow(data), lambda = 20)
+  data$revenue <- data$quantity_sold * runif(nrow(data), min = 10, max = 50)
+  return(data)
 }
 
-# Generate initial fake dataset
-fake_data_set <- generate_initial_fake_data()
+# Set the number of days to simulate
+num_days <- 10
+
+# Generate random data for 10 days for each store
+simulated_data <- generate_random_data(num_days)
+
+# Print the first 15 rows of the simulated data
+head(simulated_data, 15)
+
