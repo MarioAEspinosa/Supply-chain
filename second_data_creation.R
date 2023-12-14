@@ -53,7 +53,7 @@ head(simulated_data, 15)
 coord_storage <- as.vector.data.frame(depot_letters)
 
 # api key
-key_api <- "AIzaSyDuPej5kZSivzd07IOltl28Xg5-OuQ0W0A"
+key_api <- "API HERE"
 
 
 
