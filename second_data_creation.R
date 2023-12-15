@@ -1,6 +1,13 @@
 library(lubridate)
 library(dplyr)
 library(tidyr)
+library(mapsapi)
+
+# api key
+key_api <- "AIzaSyDuPej5kZSivzd07IOltl28Xg5-OuQ0W0A"
+
+# seed
+set.seed(8956)
 
 # Creating a dataset with depots using letters from A to J
 depot_letters <- LETTERS[1:10]  # A to J
@@ -32,11 +39,15 @@ head(depot_data, 15)
 # Function to generate random data for a given number of days
 generate_random_data <- function(days) {
   data <- data.frame(
-    date = rep(seq(Sys.time(), by = "-1 day", length.out = days), each = nrow(depot_data)),
+    date = rep(seq(Sys.time(), by = "-1 day", length.out = days * nrow(depot_data)), each = nrow(depot_data)),
     depot_id = rep(depot_data$depot_id, each = days),
     vehicle_id = rep(depot_data$vehicle_id, each = days),
     store_id = rep(depot_data$store_id, each = days)
   )
+  
+  # Add random hours to the date column for each entry
+  data$date <- data$date + runif(nrow(data), 0, 24) * 3600  # 3600 seconds in an hour
+  
   return(data)
 }
 
@@ -51,9 +62,6 @@ head(simulated_data, 15)
 
 # Generate coordinates and store them in another df
 coord_storage <- as.vector.data.frame(depot_letters)
-
-# api key
-key_api <- "API HERE"
 
 
 
@@ -102,11 +110,12 @@ generate_random_coordinates <- function(lat, lon, num_points, max_distance_km) {
   angles <- runif(num_points, 0, 2 * pi)
   
   # Calculate new coordinates based on the random distances and angles
-  new_lat <- lat + distances * sin(angles)
-  new_lon <- lon + distances * cos(angles)
+  destination_lat <- lat + distances * sin(angles)
+  destination_lon <- lon + distances * cos(angles)
   
-  return(data.frame(destination_lat = new_lat, destination_lon = new_lon))
+  return(data.frame(destination_lat, destination_lon))
 }
+
 
 # Specify the number of points and maximum distance in kilometers
 num_points <- 100
@@ -115,12 +124,25 @@ max_distance_km <- 50
 # Apply the function to generate random coordinates for each row
 joined_data <- joined_data %>%
   group_by(origin_lat, origin_lon) %>%
-  do(generate_random_coordinates(.$origin_lat[1], .$origin_lon[1], num_points, max_distance_km)) %>%
-  ungroup() %>%
-  tidyr::unnest_wider(new_coordinates)
+  mutate(random_coords = list(generate_random_coordinates(origin_lat[1], origin_lon[1], num_points, max_distance_km))) %>%
+  unnest(cols = c(random_coords)) %>%
+  ungroup()
 
-# Print the updated data frame
-print(head(joined_data, 15))
+# Print the updated data frame 
+head(joined_data)
 
 
+# Function to get map information for a set of coordinates
+get_map_info <- function(lat, lon) {
+  result <- mp_geocode(location = c(lat, lon), key = key_api)
+  return(result)
+}
 
+# Apply the function to the coordinates in joined_data
+map_info <- joined_data %>%
+  rowwise() %>%
+  mutate(map_info = list(get_map_info(origin_lat, origin_lon)))
+
+# View the map information
+head(map_info)
+  
