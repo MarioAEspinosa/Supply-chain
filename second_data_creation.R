@@ -132,17 +132,36 @@ joined_data <- joined_data %>%
 head(joined_data)
 
 
-# Function to get map information for a set of coordinates
-get_map_info <- function(lat, lon) {
-  result <- mp_geocode(location = c(lat, lon), key = key_api)
-  return(result)
+# Filter depots and stores separately
+depots_data <- joined_data[joined_data$l]
+
+
+# Extract unique coordinates from joined_data
+unique_origins <- unique(joined_data[, c("origin_lat", "origin_lon")])
+unique_destinations <- unique(joined_data[, c("destination_lat", "destination_lon")])
+
+# Combine unique coordinates into a matrix for origins and destinations
+all_coordinates <- cbind(
+  c(unique_origins$origin_lon, unique_destinations$destination_lon),
+  c(unique_origins$origin_lat, unique_destinations$destination_lat)
+)
+
+# Initialize an empty list to store geocoding information
+geocode_responses <- list()
+
+# Iterate through each coordinate pair and perform geocoding
+for (i in seq_len(nrow(all_coordinates))) {
+  # Create a string in the format "latitude,longitude"
+  coordinate_str <- paste(all_coordinates[i, ], collapse = ",")
+  
+  # Query the Geocoding API
+  geocode_response <- mp_geocode(
+    addresses = coordinate_str,
+    key = key_api,
+    quiet = TRUE
+  )
+  
+  # Append the geocoding response to the list
+  geocode_responses[[i]] <- geocode_response
 }
 
-# Apply the function to the coordinates in joined_data
-map_info <- joined_data %>%
-  rowwise() %>%
-  mutate(map_info = list(get_map_info(origin_lat, origin_lon)))
-
-# View the map information
-head(map_info)
-  
