@@ -4,7 +4,7 @@ library(tidyr)
 library(mapsapi)
 
 # api key
-key_api <- "AIzaSyDuPej5kZSivzd07IOltl28Xg5-OuQ0W0A"
+key_api <- "API"
 
 # seed
 set.seed(8956)
