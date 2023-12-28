@@ -4,7 +4,7 @@ library(tidyr)
 library(mapsapi)
 
 # api key
-key_api <- "hiden api"
+key_api <- "AIzaSyDuPej5kZSivzd07IOltl28Xg5-OuQ0W0A"
 
 # seed
 set.seed(8956)
@@ -164,4 +164,3 @@ for (i in seq_len(nrow(all_coordinates))) {
   # Append the geocoding response to the list
   geocode_responses[[i]] <- geocode_response
 }
-
